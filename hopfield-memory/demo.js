@@ -65,7 +65,6 @@ function createNetwork(patterns, opts) {
     lambda: opts.lambda ?? 2,
     beta: opts.beta ?? 5,       // Infinity -> T = 0
     delaySteps: opts.delaySteps ?? 200,
-    delayOn: true,              // false: the delayed (sequence) term sees an empty past
     time: 0,
   };
 
@@ -117,7 +116,7 @@ function createNetwork(patterns, opts) {
     const { m, a, ad, c, hist, s } = net;
     net.updateDual();
     const hp = net.histIdx * P;
-    for (let mu = 0; mu < P; mu++) hist[hp + mu] = net.delayOn ? a[mu] : 0;
+    for (let mu = 0; mu < P; mu++) hist[hp + mu] = a[mu];
     const D = Math.min(net.delaySteps, H - 1);
     const dp = ((net.histIdx - D + H) % H) * P;
     for (let mu = 0; mu < P; mu++) ad[mu] = hist[dp + mu];
@@ -172,7 +171,7 @@ function mountHopfield(root, overrides = {}) {
     grid: 512,            // neurons per side (N = grid²); the embedded bits are 512×512
     neuronTime: 1.5,      // seconds of real time per neuron time constant (sets recall/transition speed)
     dt: 0.02,             // integration step, in neuron time constants
-    tau: 2,               // default dwell time, seconds
+    tau: 3,               // default dwell time, seconds
     tauMax: 15,
     lambda: 2,
     temperature: 0.2,
@@ -327,7 +326,6 @@ function mountHopfield(root, overrides = {}) {
     if (!net) return;
     lastHeld = null;
     net.reset(0, params.noise);
-    net.delayOn = false;  // hold the first recalled memory for a full τ before the sequence starts
     for (let i = 0; i < N; i++) disp[i] = net.s[i];
     trace.n = 0; trace.head = 0; simAcc = 0;
     render();
@@ -469,10 +467,7 @@ function mountHopfield(root, overrides = {}) {
     if (!root.isConnected) { running = false; return; }
     const dtReal = Math.min((now - lastNow) / 1000, 0.05); lastNow = now;
     simAcc += dtReal / CONFIG.neuronTime;
-    while (simAcc >= CONFIG.dt) {
-      net.step(); simAcc -= CONFIG.dt;
-      if (!net.delayOn) { let m = 0; for (let mu = 0; mu < net.P; mu++) m = Math.max(m, net.a[mu]); if (m > 0.95) net.delayOn = true; }
-    }
+    while (simAcc >= CONFIG.dt) { net.step(); simAcc -= CONFIG.dt; }
     const k = 1 - Math.exp(-dtReal / 0.05); // display smoothing (~50 ms)
     const s = net.s;
     for (let i = 0; i < N; i++) disp[i] += k * (s[i] - disp[i]);
