@@ -7,9 +7,6 @@
   <url>
     <loc>https://leof333.github.io/cv.html</loc>
     <priority>0.8</priority>
-  </url><url>
-    <loc>https://leof333.github.io/</loc>
-    <priority>1.0</priority>
   </url>
   <url>
     <loc>https://leof333.github.io/research.html</loc>
@@ -29,6 +26,10 @@
   </url>
   <url>
     <loc>https://leof333.github.io/research/tropical.html</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://leof333.github.io/research/self-avoiding-walks.html</loc>
     <priority>0.8</priority>
   </url>
 </urlset>
